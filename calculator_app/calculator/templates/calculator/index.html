@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'calculator/style.css' %}">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="calculator">
+        <input type="text" id="display" class="display" readonly>
+        <div class=" backbuttons" >
+            <button class="btn top" onclick="clearDisplay()">C</button>
+            <button class="btn" onclick="appendToDisplay('(')">(</button>
+            <button class="btn" onclick="appendToDisplay(')')">)</button>
+            <button class="btn top" onclick="backspace()">⌫</button>
+            </div>
+        <div class="buttons">
+
+            <button class="btn" onclick="appendToDisplay('7')">7</button>
+            <button class="btn" onclick="appendToDisplay('8')">8</button>
+            <button class="btn" onclick="appendToDisplay('9')">9</button>
+            <button class="btn operator" onclick="appendToDisplay('/')">/</button>
+
+            <button class="btn" onclick="appendToDisplay('4')">4</button>
+            <button class="btn" onclick="appendToDisplay('5')">5</button>
+            <button class="btn" onclick="appendToDisplay('6')">6</button>
+            <button class="btn operator" onclick="appendToDisplay('*')">*</button>
+
+            <button class="btn" onclick="appendToDisplay('1')">1</button>
+            <button class="btn" onclick="appendToDisplay('2')">2</button>
+            <button class="btn" onclick="appendToDisplay('3')">3</button>
+            <button class="btn operator" onclick="appendToDisplay('-')">-</button>
+
+            <button class="btn" onclick="appendToDisplay('0')">0</button>
+            <button class="btn" onclick="appendToDisplay('.')">.</button>
+            <button class="btn operator" onclick="appendToDisplay('+')">+</button>
+            <button class="btn equal" onclick="calculate()">=</button>
+           
+
+            
+            
+            
+
+            
+            
+        </div>
+    </div>
+
+    <script>
+        $.ajaxSetup({
+            headers: {
+                'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        function appendToDisplay(value) {
+            document.getElementById('display').value += value;
+        }
+
+        function clearDisplay() {
+            document.getElementById('display').value = '';
+        }
+
+        function backspace() {
+        let display = document.getElementById('display').value;
+        document.getElementById('display').value = display.slice(0, -1);
+        }
+
+
+        function calculate() {
+            let expression = document.getElementById('display').value;
+
+            if (expression.trim() === '') {
+            document.getElementById('display').value = 'Invalid';
+            return;
+            }
+
+
+            $.post('/calculate/', {'expression': expression}, function(data) {
+                if (data.error) {
+                    document.getElementById('display').value = data.error;
+                } else {
+                    document.getElementById('display').value = data.result;
+                }
+            }).fail(function(){
+                document.getElementByID('display').value = 'Error!';
+            });
+        }
+         // Optional: Keyboard support
+         document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            if (!isNaN(key) || ['+', '-', '*', '/'].includes(key)) {
+                appendToDisplay(key);
+            } else if (key === 'Enter') {
+                calculate();
+            } else if (key === 'Backspace') {
+                clearDisplay();
+            }
+        });       
+    </script>
+</body>
+</html>
